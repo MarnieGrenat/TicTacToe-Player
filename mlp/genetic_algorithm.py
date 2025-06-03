@@ -1,122 +1,138 @@
-from random import randint
+import random
 import numpy as np
 
-# Funções de dependência
 class Genetic_algorithm:
-    def __init__(self, rows:int, columns:int, vector:list, max_iter=100):
-        self.r = rows
-        self.c = columns
-        self.v = vector
-        self.max = max_iter
+    """
+    Algoritmo Genético para otimização de cromossomos representados como vetores de floats.
+    Adaptado para treinamento de redes neurais ou outros problemas de otimização contínua.
 
-        self.pop = self.random_init
+    Parâmetros:
+    -----------
+    pop_size : int
+        Tamanho da população.
+    chromosome_size : int
+        Número de genes (pesos) em cada cromossomo.
+    fitness_function : function
+        Função de aptidão que recebe um cromossomo (lista de floats) e retorna um valor numérico (fitness).
+    max_iter : int, default=100
+        Número máximo de gerações para executar o algoritmo.
 
-    def fit(self):
-        counter = 0
-        while True:
-            # Inicialização
-            counter += 1
-            pop_int = np.zeros(shape=[self.r, self.c], dtype=int)
-            print(f'{5 * '='}Geracao {counter}{5 * '='}')
+    Métodos:
+    --------
+    run(threshold=9.5, verbose=False)
+        Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou um limiar de aptidão.
 
-            ## Calculando o algoritmo
-            self.calcula_aptidao(True)
+    evaluate_population(verbose=False)
+        Avalia a aptidão de todos os cromossomos da população usando a fitness_function.
 
-            i = self.elitismo(True)
-            pop_int[0] = self.pop[i].copy()
+    mutate(chromosome, mutation_rate=0.05, learning_rate=0.1)
+        Aplica mutação gaussiana a cada gene do cromossomo com uma taxa de mutação.
 
-            self.crossover(pop_int)
-            self.pop = pop_int
+    elitism(verbose=False)
+        Retorna o melhor cromossomo da população e sua aptidão.
 
-            self.mutacao()
+    select_parent()
+        Realiza seleção por torneio e retorna o índice de um dos pais.
 
-            # Condições de parada
-            if counter >= self.max or self.aptidao_eh_boa(.95):
+    crossover(parent1, parent2)
+        Realiza o crossover aritmético (média ponderada) entre dois cromossomos.
+
+    achieved_threshold(threshold=10, mode='max')
+        Verifica se a aptidão máxima ou média da população atingiu o limiar definido.
+    """
+
+    def __init__(self, pop_size: int, chromosome_size: int, fitness_function, max_iter=100):
+        """
+        Inicializa o algoritmo genético.
+        """
+        self.pop_size = pop_size
+        self.chromosome_size = chromosome_size
+        self.fitness_function = fitness_function
+        self.max_iter = max_iter
+
+        # Inicializa a população com valores aleatórios entre -1 e 1
+        self.population = [np.random.uniform(-1, 1, self.chromosome_size).tolist() for _ in range(self.pop_size)]
+        self.fitness_scores = [0.0 for _ in range(self.pop_size)]
+
+    def evaluate_population(self, verbose=False):
+        """
+        Avalia a aptidão de cada cromossomo da população usando a fitness_function.
+        """
+        for i, chromosome in enumerate(self.population):
+            self.fitness_scores[i] = self.fitness_function(chromosome)
+        if verbose:
+            print(f"Aptidões: {self.fitness_scores}")
+
+    def mutate(self, chromosome, mutation_rate=0.05, learning_rate=0.1):
+        """
+        Aplica mutação gaussiana em cada gene do cromossomo com uma certa taxa de mutação.
+        """
+        for i in range(len(chromosome)):
+            if random.random() < mutation_rate:
+                chromosome[i] += np.random.normal(0, learning_rate)
+                chromosome[i] = max(min(chromosome[i], 1), -1)  # Mantém os valores no intervalo [-1, 1]
+
+    def elitism(self, verbose: bool = False):
+        """
+        Retorna o melhor cromossomo da população e sua aptidão.
+        """
+        best_idx = np.argmax(self.fitness_scores)
+        best_chromosome = self.population[best_idx].copy()
+        best_fitness = self.fitness_scores[best_idx]
+        if verbose:
+            print(f"Melhor aptidão: {best_fitness:.2f}")
+        return best_chromosome, best_fitness
+
+    def select_parent(self) -> int:
+        """
+        Seleciona um cromossomo por torneio: escolhe dois aleatórios e retorna o melhor.
+        """
+        parent1, parent2 = random.sample(range(self.pop_size), 2)
+        return parent1 if self.fitness_scores[parent1] > self.fitness_scores[parent2] else parent2
+
+    def crossover(self, parent1, parent2):
+        """
+        Realiza crossover aritmético entre dois cromossomos, gerando um novo filho.
+        """
+        a = random.uniform(0, 1)
+        return [a * p1 + (1 - a) * p2 for p1, p2 in zip(parent1, parent2)]
+
+    def achieved_threshold(self, threshold: float = 10, mode: str = 'max') -> bool:
+        """
+        Verifica se a aptidão da população atingiu o limiar definido.
+        Parâmetros:
+            threshold: valor mínimo de aptidão para considerar como atingido.
+            mode: 'max' para considerar o melhor cromossomo, 'avg' para considerar a média da população.
+        """
+        if mode == 'avg':
+            return (sum(self.fitness_scores) / len(self.fitness_scores)) >= threshold
+        else:
+            return (max(self.fitness_scores)) >= threshold
+
+    def run(self, threshold=9.5, verbose=False):
+        """
+        Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou o limiar de aptidão.
+        """
+        for gen in range(1, self.max_iter + 1):
+            print(f"\n{'='*10} Geração {gen} {'='*10}")
+
+            self.evaluate_population(verbose)
+
+            chromosome, fitness = self.elitism(verbose)
+            new_population = [chromosome]
+
+            while len(new_population) < self.pop_size:
+                parent1 = self.population[self.select_parent()]
+                parent2 = self.population[self.select_parent()]
+                child = self.crossover(parent1, parent2)
+                self.mutate(child)
+                new_population.append(child)
+            self.population = new_population
+
+            if self.achieved_threshold(threshold=threshold):
+                if verbose:
+                    print(f"\nAtingiu a aptidão desejada na geração {gen}")
                 break
 
-        print(f'{5 * '='}Resultado da Geração {counter}{5 * '='}')
-        aptidoes = [int(e[-1]) for e in self.pop]
-        print(f'Aptidão : Aptidões={aptidoes}')
-
-    def calcula_aptidao(self, verbose:bool=False):
-        for i in range(len(self.pop)):
-            acumulador_0 = 0
-            acumulador_1 = 0
-            for j in (range(len(self.pop[0]) - 1)):
-                # Calcula aptidões
-                if self.pop[i][j] == 0:
-                    acumulador_0 += self.v[j]
-                else:
-                    acumulador_1 += self.v[j]
-            # Preenche ultima coluna com aptidões
-            self.pop[i][-1] = abs(acumulador_0 - acumulador_1)
         if verbose:
-            print(f'Aptidão : Todas Aptidões={[int(e[-1]) for e in self.pop]}')
-
-    def mutacao(self, porc=50):
-        '''Gera mutacao n% das vezes. n=porc'''
-        if randint(0, 100) < porc:
-            return # evita executar operação porc% das vezes
-        # acesso linha random
-        i = randint(1, len(self.pop) - 1)
-        j = randint(0, len(self.pop[0]) - 1)
-
-        # shifta valor (se era 0, vira 1. se era 1, vira 0)
-        self.pop[i][j] = abs(self.pop[i][j] - 1)
-
-    def elitismo(self, verbose:bool=False):
-        '''Retorna índice do menor elitismo presente na população'''
-        _ = 0
-        m = 9999999
-        for _ in range(len(self.pop)):
-            if self.pop[_][-1] < m:
-                m = self.pop[_][-1]
-                i = _
-        if verbose:
-            print(f'Elitismo : Indice={i} : Aptidão={self.pop[i][-1]}')
-        return i
-
-    def torneio(self):
-        '''Retorna o índice da observação de melhor aptidão'''
-        idx1 = randint(0, len(self.pop)-1)
-        idx2 = randint(0, len(self.pop)-1)
-        # Evita q idx1 == idx2
-        while idx1 == idx2:
-            idx2 = randint(0, len(self.pop)-1)
-
-        # Retorna índice do menor valor
-        if self.pop[idx1][-1] < self.pop[idx2][-1]:
-            return idx1
-        return idx2
-
-    def crossover(self, interm):
-        '''Cruza indivíduos, atualizando filhos'''
-        primeira_metade = len(self.pop[0])//2
-        ultima_metade =  len(self.pop[0] - 1) # Ignora a coluna de aptidões
-
-        for i in (range(1, len(self.pop), 2)): # Pula de 2 em 2
-            mae = self.torneio
-            pai = self.torneio
-
-            # FIXME: Não funciona pro problema atual. Utilizar média?
-            for j in range(primeira_metade): # até primeira metade
-                interm[i][j] = self.pop[mae][j]
-                interm[i+1][j] = self.pop[pai][j]
-
-            for j in range(primeira_metade, ultima_metade): # da primeira metade até ultima metade
-                interm[i][j] = self.pop[pai][j]
-                interm[i+1][j] = self.pop[mae][j]
-
-    def aptidao_eh_muito_boa(self, porcentagem:float=.90):
-        '''Retorna True que a porcentagem de aptidões igual a zero for maior que 90% (ou valor do param porcentagem)'''
-        aptidao_0 = sum(1 for linha in self.pop if linha[-1] == 0)
-        aptidao_todas = len(self.pop)
-        return (aptidao_0/aptidao_todas) >= porcentagem
-
-    def random_init(self):
-        '''Inicializa uma matriz de row linhas e col colunas preenchida aleatoriamente com 0's e 1's '''
-        m = np.zeros(shape=[self.r, self.c], dtype=int)
-        for i in range(self.r):
-            for j in range(self.c):
-                m[i][j]= randint(0,1)
-        return m
+            print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")

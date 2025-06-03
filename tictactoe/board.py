@@ -1,77 +1,119 @@
 class Board:
-    O_WIN   = O = 0
+    """
+    Classe para gerenciar o estado de um tabuleiro de jogo da velha (Tic-Tac-Toe).
+
+    A lógica é baseada em:
+    - X representado pelo valor 1 (MLP).
+    - O representado pelo valor -1 (Minimax).
+    - Posições vazias representadas por 0.
+
+    Estados do jogo:
+    ----------------
+    X_WIN (3) : X venceu.
+    O_WIN (0) : O venceu.
+    DRAW (1)  : Empate.
+    ONGOING (2) : Jogo em andamento.
+
+    Métodos:
+    --------
+    update_board(symbol: int, x: int, y: int) -> bool
+        Atualiza o tabuleiro com a jogada do jogador no ponto (x, y). Retorna True se a jogada for válida.
+
+    flatten_board() -> list
+        Retorna o tabuleiro como uma lista linear (1x9) para entrada da MLP.
+
+    check_wins() -> int
+        Verifica o estado atual do jogo: vitória (X ou O), empate ou jogo em andamento.
+    """
+
+    # Estados possíveis do jogo
+    O_WIN   = 0
     DRAW    = 1
     ONGOING = 2
-    X_WIN   = X = 3
+    X_WIN   = 3
 
     def __init__(self):
-        self.board = self.clear()
-
-    def clear(self):
-        return [[0, 0, 0],
-                [0, 0, 0],
-                [0, 0, 0]]
-
-    def reset(self):
-        self.board = self.clear()
+        """
+        Inicializa o tabuleiro vazio (3x3).
+        """
+        self.board = [[0, 0, 0],
+                      [0, 0, 0],
+                      [0, 0, 0]]
 
     def update_board(self, symbol: int, x: int, y: int) -> bool:
-        '''update board status. | symbol= int (-1 or 1) | x= coordinate x between 0 and 2 | y= coordinate y between 0 and 2'''
-        if (self.board[x][y] != '0') and self.__valid_coordinates(x, y) and self.__valid_symbol(symbol):
+        """
+        Atualiza o tabuleiro com a jogada do jogador.
+
+        Parâmetros:
+        -----------
+        symbol : int
+            -1 para O, 1 para X.
+        x : int
+            Coordenada da linha (0 a 2).
+        y : int
+            Coordenada da coluna (0 a 2).
+
+        Retorna:
+        --------
+        bool : True se a jogada foi válida, False caso contrário.
+        """
+        if self.board[x][y] == 0 and self.__valid_coordinates(x, y) and self.__valid_symbol(symbol):
             self.board[x][y] = symbol
             return True
         return False
 
-    def export_board(self) -> list[list[str]]:
-        '''Export board containing visual symbols (prettify)'''
-        result = [['', '', ''],
-                  ['', '', ''],
-                  ['', '', '']]
+    def flatten_board(self) -> list:
+        """
+        Retorna o tabuleiro como uma lista linear (1x9), para entrada da rede MLP.
+        """
+        return [cell for row in self.board for cell in row]
 
-        for x in range(len(result)):
-            for y in range(len(result)):
-                match self.board[x][y]:
-                    case -1 : result[x][y] = 'O'
-                    case  1 : result[x][y] = 'X'
-        return result
+    def check_wins(self) -> int:
+        """
+        Verifica o estado atual do tabuleiro.
 
-    def export_board_raw(self):
-        return self.board
-
-    def flatten_board(self):
-        ''' Transforma as observações 3x3 em 1x9'''
-        flat = [cell for row in self.board for cell in row]
-        return flat
-
-    def check_wins(self):
-        '''Verifica o estado do tabuleiro e o retorna'''
-        # Diagonais
+        Retorna:
+        --------
+        int : Código do estado do jogo.
+            3 : X venceu
+            0 : O venceu
+            1 : Empate
+            2 : Jogo em andamento
+        """
+        # Verifica diagonais
         if self.board[0][0] == self.board[1][1] == self.board[2][2] != 0:
             return self._get_label(self.board[1][1])
         if self.board[0][2] == self.board[1][1] == self.board[2][0] != 0:
             return self._get_label(self.board[1][1])
 
-        # Linhas e colunas
+        # Verifica linhas e colunas
         for i in range(3):
-            if self.board[0][i] == self.board[1][i] == self.board[2][i] != 0:
-                return self._get_label(self.board[0][i])
             if self.board[i][0] == self.board[i][1] == self.board[i][2] != 0:
                 return self._get_label(self.board[i][0])
+            if self.board[0][i] == self.board[1][i] == self.board[2][i] != 0:
+                return self._get_label(self.board[0][i])
 
-        # Verificar se o jogo ainda está em andamento (se há posições vazias)
+        # Verifica se há espaços vazios (jogo em andamento)
         if 0 in self.flatten_board():
-            return 2  # Jogo em andamento
+            return Board.ONGOING
 
-        # Verificar se o jogo terminou em empate (sem espaços vazios e sem vencedor)
-        return 1  # Empate
+        # Se não houver vencedor nem espaços vazios, é empate
+        return Board.DRAW
 
-    def _get_label(self, symbol : int) -> int:
-        match symbol:
-            case -1: return 0
-            case 1: return 3
+    def _get_label(self, symbol: int) -> int:
+        """
+        Converte o símbolo (-1 para O, 1 para X) em código de vitória.
+        """
+        return Board.O_WIN if symbol == -1 else Board.X_WIN
 
-    def __valid_coordinates(self, x : int, y : int) -> bool:
-        return (x < 3) and (x >= 0) and (y < 3) and (y >= 0)
+    def __valid_coordinates(self, x: int, y: int) -> bool:
+        """
+        Verifica se as coordenadas (x, y) estão dentro do tabuleiro.
+        """
+        return 0 <= x < 3 and 0 <= y < 3
 
-    def __valid_symbol(self, symbol : str) -> bool:
+    def __valid_symbol(self, symbol: int) -> bool:
+        """
+        Verifica se o símbolo é válido (-1 para O, 1 para X).
+        """
         return symbol in [-1, 1]

@@ -1,4 +1,4 @@
-from neuron import Neuron
+from mlp.neuron import Neuron
 
 class MultilayerPerceptron:
     """
@@ -87,10 +87,17 @@ class MultilayerPerceptron:
         """
         Serializa a estrutura e os pesos da rede em um dicionário JSON.
         """
+        all_neurons = []
+        for layer in self._neurons:
+            layer_neurons = []
+            for neuron in layer:
+                layer_neurons.append(neuron.to_json())
+            all_neurons.append(layer_neurons)
+
         return {
-            'topology': self._topology,
-            'population_size': self._pop_size,
-            'neurons': [neuron.to_json() for neuron in self._neurons]
+            "topology": self._topology,
+            "population_size": self._pop_size,
+            "neurons": all_neurons
         }
 
     def load_weights_from_vector(self, weights_vector: list):

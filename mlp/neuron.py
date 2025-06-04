@@ -42,11 +42,12 @@ class Neuron:
         Por padrão, os pesos (incluindo o bias) são inicializados aleatoriamente.
         """
         self.n = n_params  # Número de entradas
-        self.weights = np.zeros(shape=[1, n_params + 1], dtype=float)  # Pesos + bias
+        self.weights = np.zeros(shape=[n_params + 1], dtype=float)  # Pesos + bias
 
         if randomize:
             for i in range(len(self.weights)):
                 self.weights[i] = random()  # Valores entre 0 e 1
+        print(f'Neuron : N={self.n} : Weights={self.weights}')
 
     def decide(self, inputs: list) -> float:
         """
@@ -95,8 +96,8 @@ class Neuron:
         dict : Estrutura contendo o número de entradas e os pesos do neurônio.
         """
         return {
-            'n_params': self.n,
-            'weights': self.weights.tolist()
+            "n_params": self.n,
+            "weights": self.weights.tolist()
         }
 
     @staticmethod

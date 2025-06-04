@@ -26,21 +26,15 @@ class Board:
         Verifica o estado atual do jogo: vitória (X ou O), empate ou jogo em andamento.
     """
 
-    # Estados possíveis do jogo
-    O_WIN   = 0
-    DRAW    = 1
-    ONGOING = 2
-    X_WIN   = 3
-
     def __init__(self):
         """
-        Inicializa o tabuleiro vazio (3x3).
+        Inicializa o tabuleiro vazio (1x9).
         """
-        self.board = [[0, 0, 0],
-                      [0, 0, 0],
-                      [0, 0, 0]]
+        self.board = [0, 0, 0,
+                      0, 0, 0,
+                      0, 0, 0]
 
-    def update_board(self, symbol: int, x: int, y: int) -> bool:
+    def update_board(self, symbol: int, index: int) -> bool:
         """
         Atualiza o tabuleiro com a jogada do jogador.
 
@@ -48,29 +42,21 @@ class Board:
         -----------
         symbol : int
             -1 para O, 1 para X.
-        x : int
-            Coordenada da linha (0 a 2).
-        y : int
-            Coordenada da coluna (0 a 2).
+        index : int
+            Coordenada da linha (0 a 8).
 
         Retorna:
         --------
         bool : True se a jogada foi válida, False caso contrário.
         """
-        if self.board[x][y] == 0 and self.__valid_coordinates(x, y) and self.__valid_symbol(symbol):
-            self.board[x][y] = symbol
+        if self.board[index] == 0 and self.__valid_coordinates(index) and self.__valid_symbol(symbol):
+            self.board[index] = symbol
             return True
         return False
 
-    def flatten_board(self) -> list:
+    def check_win(self) -> int:
         """
-        Retorna o tabuleiro como uma lista linear (1x9), para entrada da rede MLP.
-        """
-        return [cell for row in self.board for cell in row]
-
-    def check_wins(self) -> int:
-        """
-        Verifica o estado atual do tabuleiro.
+        Verifica o estado atual do tabuleiro (representado como lista linear 1x9).
 
         Retorna:
         --------
@@ -80,25 +66,27 @@ class Board:
             1 : Empate
             2 : Jogo em andamento
         """
+        b = self.board
+
+        for i in [0, 3, 6]:
+            if b[i] == b[i + 1] == b[i + 2] != 0:
+                return self._get_label(b[i])
+        for i in [0, 1, 2]:
+            if b[i] == b[i + 3] == b[i + 6] != 0:
+                return self._get_label(b[i])
+
         # Verifica diagonais
-        if self.board[0][0] == self.board[1][1] == self.board[2][2] != 0:
-            return self._get_label(self.board[1][1])
-        if self.board[0][2] == self.board[1][1] == self.board[2][0] != 0:
-            return self._get_label(self.board[1][1])
+        if b[0] == b[4] == b[8] != 0:
+            return self._get_label(b[4])
+        if b[2] == b[4] == b[6] != 0:
+            return self._get_label(b[4])
 
-        # Verifica linhas e colunas
-        for i in range(3):
-            if self.board[i][0] == self.board[i][1] == self.board[i][2] != 0:
-                return self._get_label(self.board[i][0])
-            if self.board[0][i] == self.board[1][i] == self.board[2][i] != 0:
-                return self._get_label(self.board[0][i])
+        if 0 in b:
+            return 2 # Em progesso
+        return 1 # Empate
 
-        # Verifica se há espaços vazios (jogo em andamento)
-        if 0 in self.flatten_board():
-            return Board.ONGOING
-
-        # Se não houver vencedor nem espaços vazios, é empate
-        return Board.DRAW
+    def is_ongoing(self) -> bool:
+        return self.check_win() == 0
 
     def _get_label(self, symbol: int) -> int:
         """
@@ -106,11 +94,11 @@ class Board:
         """
         return Board.O_WIN if symbol == -1 else Board.X_WIN
 
-    def __valid_coordinates(self, x: int, y: int) -> bool:
+    def __valid_coordinates(self, index: int) -> bool:
         """
         Verifica se as coordenadas (x, y) estão dentro do tabuleiro.
         """
-        return 0 <= x < 3 and 0 <= y < 3
+        return 0 <= index < 8
 
     def __valid_symbol(self, symbol: int) -> bool:
         """

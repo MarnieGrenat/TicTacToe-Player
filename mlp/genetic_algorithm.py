@@ -1,7 +1,7 @@
 import random
 import numpy as np
 
-class Genetic_algorithm:
+class GeneticAlgorithm:
     """
     Algoritmo Genético para otimização de cromossomos representados como vetores de floats.
     Adaptado para treinamento de redes neurais ou outros problemas de otimização contínua.
@@ -80,6 +80,7 @@ class Genetic_algorithm:
         best_chromosome = self.population[best_idx].copy()
         best_fitness = self.fitness_scores[best_idx]
         if verbose:
+            print(f"Melhor cromossomo: {best_chromosome}")
             print(f"Melhor aptidão: {best_fitness:.2f}")
         return best_chromosome, best_fitness
 
@@ -109,7 +110,7 @@ class Genetic_algorithm:
         else:
             return (max(self.fitness_scores)) >= threshold
 
-    def run(self, threshold=9.5, verbose=False):
+    def run(self, threshold=0.95, verbose=False):
         """
         Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou o limiar de aptidão.
         """
@@ -136,3 +137,4 @@ class Genetic_algorithm:
 
         if verbose:
             print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")
+        return chromosome, fitness

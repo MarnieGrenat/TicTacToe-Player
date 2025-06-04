@@ -1,102 +1,114 @@
 # Deps
 from functools import partial
+import json
 
 # Models
-from mlp.multilayer_perceptron import GeneticAlgorithm
+from mlp.genetic_algorithm import GeneticAlgorithm
 from mlp.multilayer_perceptron import MultilayerPerceptron
 from minimax.minimax import Minimax
 
-# Case
-from tictactoe import board as tictactoe
+# Game
+from tictactoe.board import Board as tictactoe
 
 def evaluate_fitness(model: MultilayerPerceptron, minimax: Minimax, chromosome: list) -> float:
     """
     Função de aptidão para o Algoritmo Genético.
 
-    Recebe:
-    -------
+    Parâmetros:
+    -----------
     model : MultilayerPerceptron
-        Instância da rede MLP a ser otimizada.
+        Rede MLP que será ajustada.
+
     minimax : Minimax
-        Instância do adversário (Minimax) para jogar contra.
+        Adversário controlado por algoritmo de decisão.
+
     chromosome : list
-        Vetor linear de pesos (cromossomo) para carregar na MLP.
+        Vetor linear de pesos da rede MLP.
 
     Retorna:
     --------
-    float : Valor da aptidão calculada com base no resultado da partida.
-        +10 para vitória da MLP (X),
-        +1 para empate,
-        -5 para derrota,
-        -20 para jogada inválida.
+    float : valor da aptidão com base no resultado do jogo.
+        +10 vitória do MLP
+        +1 empate
+        -5 derrota
+        -20 jogada inválida
     """
     model.load_weights_from_vector(chromosome)
     result = play(model, minimax)
 
     if 'error' in result and result['error'] == 'p1':
-        return -20  # Penalização para jogadas inválidas
+        return -20  # Jogada inválida do MLP
 
     match result['result']:
-        case 3: return 10  # X_WIN
+        case 3: return 10  # X_WIN (MLP)
         case 1: return 1   # DRAW
-        case 0: return -5  # O_WIN
-        case _: return 0   # Resultado inesperado (fallback)
+        case 0: return -5  # O_WIN (Minimax)
+        case _: return 0   # fallback
 
 def play(p1, p2) -> dict:
     """
-    Simula uma partida de jogo da velha entre dois jogadores: p1 (MLP) e p2 (Minimax).
-
-    Recebe:
-    -------
-    p1, p2 : objetos com método predict()
-        Agentes para jogar a partida. Devem implementar o método predict(board).
+    Executa uma partida entre dois agentes com método predict().
 
     Retorna:
     --------
-    dict : Resultado da partida, incluindo o estado final do tabuleiro e o resultado.
-        {'board': estado final, 'result': código do resultado}
-        Códigos: 3 (X_WIN), 1 (DRAW), 0 (O_WIN), ou erro.
+    dict com resultado e estado final do tabuleiro.
     """
-    ttt = tictactoe()  # Inicializa o tabuleiro
+    ttt = tictactoe()
 
     while True:
-        if not ttt.update_board(p1.predict(ttt.flatten_board()), ttt.X):
+        if not ttt.update_board(1,p1.predict(ttt.board)):
             return {'error': 'p1', 'reason': 'P1 invalid play', 'result': -1}
-        if ttt.check_win() != ttt.ONGOING:
+        if not ttt.is_ongoing():
             break
 
-        if not ttt.update_board(p2.predict(ttt.flatten_board()), ttt.O):
+        if not ttt.update_board(-1, p2.predict(ttt.board)):
             return {'error': 'p2', 'reason': 'P2 invalid play', 'result': -1}
-        if ttt.check_win() != ttt.ONGOING:
+        if not ttt.is_ongoing():
             break
 
-    return {'board': ttt.flatten_board(), 'result': ttt.check_win()}
+    return {'board': ttt.board, 'result': ttt.check_win()}
+
 
 if __name__ == '__main__':
-    # Definição da topologia da MLP: [9 inputs, 9 hidden, 9 output]
+    # Definição da arquitetura da MLP
     TOPOLOGY = [9, 9, 9]
     POPULATION_SIZE = 100
-
     model = MultilayerPerceptron(TOPOLOGY)
     chromosome_size = model.count_weights()
+
+    # Pipeline de dificuldade: ajuste conforme necessário
     pipeline = [
-        3 * 'easy',
-        4 * 'medium',
-        1 * 'hard'
+        2 * 'easy',   # 80% aleatório
+        3 * 'medium', # 50% aleatório
+        5 * 'hard'    # 0% aleatório (Minimax puro)
     ]
 
-    for mode in pipeline:
-        minimax = Minimax(mode)
-        # Define a função de aptidão para o AG usando partial para fixar os argumentos model e minimax
-        fitness_function = partial(evaluate_fitness, model, minimax)
+    best_fitness = float('-inf')
+    best_chromosome = None
 
+    for mode in pipeline:
+        print(f'\n--- Treinando contra adversário no modo: {mode.upper()} ---')
+        minimax = Minimax(mode=mode)
+        fitness_function = partial(evaluate_fitness, model, minimax)
         ag = GeneticAlgorithm(
             pop_size=POPULATION_SIZE,
             chromosome_size=chromosome_size,
             fitness_function=fitness_function
         )
-        # Executa o ciclo do AG até atingir o limiar ou o número máximo de gerações
-        ag.run()
 
-    # Persistir o modelo
-    model.to_json()
+        print(f'\n--- Executando Algoritmo Genético ---')
+
+        # Executa o AG e retorna o melhor cromossomo
+        chromosome, fitness = ag.run()#verbose=True)
+
+        # Atualiza o melhor modelo global
+        print(f'\n--- Atualização do modelo ({fitness > best_fitness})---')
+        if fitness > best_fitness:
+            best_fitness = fitness
+            best_chromosome = chromosome
+            model.load_weights_from_vector(best_chromosome)
+
+    print(f"\nMelhor fitness alcançado: {best_fitness:.2f}")
+    with open('model.json', '+w') as f:
+        f.write(json.dumps(model.to_json()))
+    print(model.to_json())

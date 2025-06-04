@@ -13,7 +13,11 @@ class Minimax:
         - 'easy'   : 80% de chance de jogar aleatoriamente
     """
 
-    def __init__(self, mode='medium'):
+    def __init__(self):
+        self.mode = 'medium'
+
+
+    def update_mode(self, mode='medium'):
         if mode == 'hard':
             self.randomness = 0.0
         elif mode == 'medium':
@@ -22,7 +26,6 @@ class Minimax:
             self.randomness = 0.8
         else:
             raise ValueError(f"Modo inválido: {mode}. Use 'easy', 'medium' ou 'hard'.")
-
         self.mode = mode
 
     def predict(self, board: list) -> int:

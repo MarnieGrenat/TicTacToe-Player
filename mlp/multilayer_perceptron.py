@@ -39,13 +39,20 @@ class MultilayerPerceptron:
         Cria uma instância da MLP a partir de um dicionário JSON.
     """
 
+    '''
+    TODO LIST:
+    -   Arrumar a primeira layer pra sempre ser o tabuleiro(?)
+    -   Corrigir a matriz de neurônios para não necessitar ser quadrada
+    -
+    '''
     def __init__(self, topology: list, population_size: int = 100):
         """
+        # Setta neurônio da primeira layer pra frente, pois a primeira layer deve ser o tabuleiro
         Inicializa a MLP com a topologia especificada.
 
         Cada neurônio em cada camada (exceto a de entrada) é instanciado com a quantidade de entradas definida pela topologia.
         """
-        self._neurons = [[Neuron(topology[0]) for _ in range(topology[n])] for n in range(len(topology))]
+        self._neurons = [[Neuron(topology[n]) for _ in range(topology[n])] for n in range(1, len(topology))]
         self._pop_size = population_size
         self._topology = topology
 
@@ -100,14 +107,17 @@ class MultilayerPerceptron:
             "neurons": all_neurons
         }
 
-    def load_weights_from_vector(self, weights_vector: list):
+    def load_weights_from_vector(self, board : list, weights_vector: list):
         """
+
         Aplica um vetor linear de pesos em toda a rede.
 
         O vetor de pesos deve conter todos os pesos e bias da rede concatenados em uma única lista.
         """
+        # print(f'board={board}')
+        self._neurons[0] = [Neuron(position) for position in board]
         idx = 0
-        for layer in self._neurons:
+        for layer in self._neurons[1:]:
             for neuron in layer:
                 n_params = neuron.n + 1
                 neuron.adjust_weights(weights_vector[idx:idx + n_params])

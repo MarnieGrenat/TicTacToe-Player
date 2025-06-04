@@ -41,7 +41,7 @@ class GeneticAlgorithm:
         Verifica se a aptidão máxima ou média da população atingiu o limiar definido.
     """
 
-    def __init__(self, pop_size: int, chromosome_size: int, fitness_function, max_iter=100):
+    def __init__(self, pop_size:int, chromosome_size:int, fitness_function, max_iter:int=100, learning_rate:float=0.1):
         """
         Inicializa o algoritmo genético.
         """
@@ -137,4 +137,3 @@ class GeneticAlgorithm:
 
         if verbose:
             print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")
-        return chromosome, fitness

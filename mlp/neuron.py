@@ -36,7 +36,7 @@ class Neuron:
         Cria uma instância de Neuron a partir de um dicionário JSON.
     """
 
-    def __init__(self, n_params: int, randomize: bool = True):
+    def __init__(self, n_params: int, randomize: bool = False):
         """
         Inicializa o neurônio com o número de entradas especificado.
         Por padrão, os pesos (incluindo o bias) são inicializados aleatoriamente.
@@ -47,7 +47,7 @@ class Neuron:
         if randomize:
             for i in range(len(self.weights)):
                 self.weights[i] = random()  # Valores entre 0 e 1
-        print(f'Neuron : N={self.n} : Weights={self.weights}')
+        # print(f'Neuron : N={self.n} : Weights={self.weights}')
 
     def decide(self, inputs: list) -> float:
         """

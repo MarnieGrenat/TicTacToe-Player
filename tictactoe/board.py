@@ -86,13 +86,13 @@ class Board:
         return 1 # Empate
 
     def is_ongoing(self) -> bool:
-        return self.check_win() == 0
+        return self.check_win() == 2
 
     def _get_label(self, symbol: int) -> int:
         """
         Converte o símbolo (-1 para O, 1 para X) em código de vitória.
         """
-        return Board.O_WIN if symbol == -1 else Board.X_WIN
+        return 0 if symbol == -1 else 3
 
     def __valid_coordinates(self, index: int) -> bool:
         """

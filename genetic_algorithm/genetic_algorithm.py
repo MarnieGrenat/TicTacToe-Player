@@ -58,7 +58,7 @@ class GeneticAlgorithm:
         self._population = [np.random.uniform(-1, 1, self._chromosome_size).tolist() for _ in range(self._pop_size)]
         self._fitness_scores = [0.0 for _ in range(self._pop_size)]
 
-    def run(self, threshold=0.95) -> None:
+    def run(self, threshold:float=5000) -> None:
         """
         Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou o limiar de aptidão.
         """
@@ -90,8 +90,13 @@ class GeneticAlgorithm:
         """
         Avalia a aptidão de cada cromossomo da população usando a fitness_function.
         """
-        with Pool() as pool:
-            self._fitness_scores = pool.map(self._fitness_function, self._population)
+
+        # with Pool() as pool:
+        #    self._fitness_scores = pool.map(self._fitness_function, self._population)
+
+        for i, chromosome in enumerate(self._population):
+            self._fitness_scores[i] = self._fitness_function(chromosome)
+
         if self._verbose:
             print(f"Aptidões: {self._fitness_scores}")
 
@@ -123,7 +128,7 @@ class GeneticAlgorithm:
         a = random.uniform(0, 1)
         return [a * p1 + (1 - a) * p2 for p1, p2 in zip(parent1, parent2)]
 
-    def _mutate(self, chromosome, mutation_rate=0.05) -> None:
+    def _mutate(self, chromosome:list[float], mutation_rate:float=0.05) -> None:
         """
         Aplica mutação gaussiana em cada gene do cromossomo com uma certa taxa de mutação.
         """
@@ -132,7 +137,7 @@ class GeneticAlgorithm:
                 chromosome[i] += np.random.normal(0, self.learning_rate)
                 chromosome[i] = max(min(chromosome[i], 1), -1)  # Mantém os valores no intervalo [-1, 1]
 
-    def _achieved_threshold(self, threshold: int = 5000) -> bool:
+    def _achieved_threshold(self, threshold:int) -> bool:
         """
         Verifica se a aptidão da população atingiu o limiar definido.
         Parâmetros:

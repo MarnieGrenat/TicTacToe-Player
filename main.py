@@ -9,17 +9,16 @@ from model import Minimax
 
 def train(learner: MultilayerPerceptron, trainer: Minimax, population_size:int, pipeline=list[str], max_iter:int=100, threshold:float=0.95, learning_rate:float=0.1, verbose:bool=False) -> MultilayerPerceptron:
     print(f"Partidas : Easy={pipeline.count('easy')} : Medium={pipeline.count('medium')} : Hard={pipeline.count('hard')}")
-    evaluator = FitnessEvaluator(learner, trainer, pipeline)
 
     training = GeneticAlgorithm(
         pop_size         =population_size,
         chromosome_size  =learner.count_weights(),
-        fitness_function =evaluator,
+        fitness_function =FitnessEvaluator(learner, trainer, pipeline),
         max_iter         =max_iter,
         learning_rate    =learning_rate
     )
 
-    training.run(verbose=verbose, threshold=threshold)
+    training.run(threshold=threshold)
 
 if __name__ == '__main__':
     PIPELINE = (
@@ -37,9 +36,9 @@ if __name__ == '__main__':
     train(
         model,
         minimax,
-        population_size=10000,
+        population_size=1000,
         pipeline=PIPELINE,
-        max_iter=4000,
+        max_iter=400,
         learning_rate=0.5,
         verbose=VERBOSE,
         )

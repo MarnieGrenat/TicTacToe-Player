@@ -1,6 +1,6 @@
 import random
-
-class Minimax:
+from .model_interface import IModel
+class Minimax(IModel):
     """
     Jogador automático usando o algoritmo Minimax com dificuldade ajustável.
 
@@ -17,7 +17,7 @@ class Minimax:
         self.mode = 'medium'
 
 
-    def update_mode(self, mode='medium'):
+    def update(self, mode:str='medium') -> None:
         if mode == 'hard':
             self.randomness = 0.0
         elif mode == 'medium':

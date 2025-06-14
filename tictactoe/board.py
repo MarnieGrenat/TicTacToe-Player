@@ -61,9 +61,9 @@ class Board:
         Retorna:
         --------
         int : Código do estado do jogo.
-            3 : X venceu
-            0 : O venceu
-            1 : Empate
+            -1 : X venceu
+            0 : Empate
+            1 : O venceu
             2 : Jogo em andamento
         """
         b = self.board
@@ -83,7 +83,7 @@ class Board:
 
         if 0 in b:
             return 2 # Em progesso
-        return 1 # Empate
+        return 0 # Empate
 
     def is_ongoing(self) -> bool:
         return self.check_win() == 2

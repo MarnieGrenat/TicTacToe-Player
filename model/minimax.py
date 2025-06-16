@@ -1,5 +1,6 @@
 import random
 from .model_interface import IModel
+
 class Minimax(IModel):
     """
     Jogador automático usando o algoritmo Minimax com dificuldade ajustável.
@@ -15,9 +16,12 @@ class Minimax(IModel):
 
     def __init__(self):
         self.mode = 'medium'
+        self.update('medium')  # Inicializa o modo padrão
 
-
-    def update(self, mode:str='medium') -> None:
+    def update(self, mode: str = 'medium') -> None:
+        """
+        Atualiza o modo de dificuldade do Minimax.
+        """
         if mode == 'hard':
             self.randomness = 0.0
         elif mode == 'medium':
@@ -45,13 +49,17 @@ class Minimax(IModel):
 
         for idx in empty_indices:
             new_board = board.copy()
-            new_board[idx] = -1  # O (Minimax)
-            score = self.minimax(new_board, maximizing=True)
+            new_board[idx] = -1  # Minimax joga como O
+            score = self.minimax(new_board, maximizing=True)  # Próxima jogada é do MLP (maximiza)
             if score < best_score:
                 best_score = score
                 best_move = idx
 
-        return best_move if best_move is not None else random.choice(empty_indices)
+        if best_move is None:
+            print(f"[DEBUG] Minimax failed to find move. Board: {board}")
+            return random.choice(empty_indices)
+
+        return best_move
 
     def minimax(self, board, maximizing: bool) -> int:
         """
@@ -65,7 +73,7 @@ class Minimax(IModel):
             max_eval = float('-inf')
             for i in range(9):
                 if board[i] == 0:
-                    board[i] = 1  # Jogador MLP
+                    board[i] = 1  # MLP joga (Maximiza)
                     eval = self.minimax(board, False)
                     board[i] = 0
                     max_eval = max(max_eval, eval)
@@ -74,7 +82,7 @@ class Minimax(IModel):
             min_eval = float('inf')
             for i in range(9):
                 if board[i] == 0:
-                    board[i] = -1  # Jogador Minimax
+                    board[i] = -1  # Minimax joga (Minimiza)
                     eval = self.minimax(board, True)
                     board[i] = 0
                     min_eval = min(min_eval, eval)
@@ -91,18 +99,18 @@ class Minimax(IModel):
             None se jogo ainda está em andamento
         """
         wins = [
-            [0,1,2], [3,4,5], [6,7,8],
-            [0,3,6], [1,4,7], [2,5,8],
-            [0,4,8], [2,4,6]
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],  # linhas
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],  # colunas
+            [0, 4, 8], [2, 4, 6]              # diagonais
         ]
         for combo in wins:
             values = [board[i] for i in combo]
             if values == [1, 1, 1]:
-                return +10
+                return +10  # MLP vence
             elif values == [-1, -1, -1]:
-                return -10
+                return -10  # Minimax vence
 
         if 0 not in board:
-            return 0  # empate
+            return 0  # Empate
 
-        return None  # jogo em andamento
+        return None  # Jogo em andamento

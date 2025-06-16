@@ -31,18 +31,15 @@ class FitnessEvaluator:
             -5 derrota
             -20 jogada inválida
         """
-        try:
-            self.learner.update(chromosome)
-            learner_fitness = 0
+        self.learner.update(chromosome)
+        learner_fitness = 0
 
-            for mode in self.pipeline:
-                self.trainer.update(mode)
-                insights = self._play(self.learner, self.trainer)
+        for mode in self.pipeline:
+            self.trainer.update(mode)
+            insights = self._play(self.learner, self.trainer)
 
-                learner_fitness += self._compute_score(insights)
-            return learner_fitness
-        except FitException as e:
-            print(f"Something went wrong : fitness={learner_fitness} : Error={e}")
+            learner_fitness += self._compute_score(insights)
+        return learner_fitness
 
     @staticmethod
     def _compute_score(insights:int) -> float:

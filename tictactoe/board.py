@@ -98,7 +98,7 @@ class Board:
         """
         Verifica se as coordenadas (x, y) estão dentro do tabuleiro.
         """
-        return 0 <= index < 8
+        return 0 <= index <= 8
 
     def __valid_symbol(self, symbol: int) -> bool:
         """

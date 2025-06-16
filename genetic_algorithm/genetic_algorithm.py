@@ -53,6 +53,7 @@ class GeneticAlgorithm:
         self._fitness_function = fitness_function
         self._max_iter = max_iter
         self._verbose = verbose
+        self._learning_rate = learning_rate
 
         # Inicializa a população com valores aleatórios entre -1 e 1
         self._population = [np.random.uniform(-1, 1, self._chromosome_size).tolist() for _ in range(self._pop_size)]
@@ -83,19 +84,18 @@ class GeneticAlgorithm:
                     print(f"\nAtingiu a aptidão desejada na geração {gen}")
                 break
 
-        if self._verbose:
-            print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")
+        print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")
 
-    def _evaluate_population(self) -> None:
+    def _evaluate_population(self, optimized:bool=True) -> None:
         """
         Avalia a aptidão de cada cromossomo da população usando a fitness_function.
         """
-
-        # with Pool() as pool:
-        #    self._fitness_scores = pool.map(self._fitness_function, self._population)
-
-        for i, chromosome in enumerate(self._population):
-            self._fitness_scores[i] = self._fitness_function(chromosome)
+        if optimized:
+            with Pool() as pool:
+                self._fitness_scores = pool.map(self._fitness_function, self._population)
+        else:
+            for i, chromosome in enumerate(self._population):
+                self._fitness_scores[i] = self._fitness_function(chromosome)
 
         if self._verbose:
             print(f"Aptidões: {self._fitness_scores}")
@@ -134,7 +134,7 @@ class GeneticAlgorithm:
         """
         for i in range(len(chromosome)):
             if random.random() < mutation_rate:
-                chromosome[i] += np.random.normal(0, self.learning_rate)
+                chromosome[i] += np.random.normal(0, self._learning_rate)
                 chromosome[i] = max(min(chromosome[i], 1), -1)  # Mantém os valores no intervalo [-1, 1]
 
     def _achieved_threshold(self, threshold:int) -> bool:

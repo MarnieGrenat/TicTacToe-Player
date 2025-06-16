@@ -13,29 +13,30 @@ def train(learner: MultilayerPerceptron, trainer: Minimax, population_size:int, 
     training = GeneticAlgorithm(
         pop_size         =population_size,
         chromosome_size  =learner.count_weights(),
-        fitness_function =FitnessEvaluator(learner, trainer, pipeline),
+        fitness_function =FitnessEvaluator(learner, trainer, pipeline, False),
         max_iter         =max_iter,
-        learning_rate    =learning_rate
+        learning_rate    =learning_rate,
+        verbose          =verbose
     )
 
     training.run(threshold=threshold)
 
 if __name__ == '__main__':
     PIPELINE = (
-    3 * ['medium'] +
-    5 * ['hard']
+    4 * ['medium'] +
+    8 * ['hard']
     )
 
     TOPOLOGY=[9, 9, 9]
 
-    VERBOSE = True
+    VERBOSE = False
 
     model = MultilayerPerceptron(TOPOLOGY)
     minimax = Minimax()
 
     train(
-        model,
-        minimax,
+        learner=model,
+        trainer=minimax,
         population_size=1000,
         pipeline=PIPELINE,
         max_iter=400,

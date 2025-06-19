@@ -88,7 +88,6 @@ class MultilayerPerceptron(IModel):
 
     def update(self, weights_vector: list) -> None:
         """
-
         Aplica um vetor linear de pesos em toda a rede.
 
         O vetor de pesos deve conter todos os pesos e bias da rede concatenados em uma única lista.

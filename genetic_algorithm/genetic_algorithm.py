@@ -63,13 +63,14 @@ class GeneticAlgorithm:
         """
         Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou o limiar de aptidão.
         """
-        for gen in range(1, self._max_iter + 1):
+        for gen in range(0, self._max_iter):
             print(f"\n{'='*10} Geração {gen} {'='*10}")
 
             self._evaluate_population()
 
             chromosome, fitness = self._elitism()
             new_population = [chromosome]
+            new_fitness    = [fitness]
 
             while len(new_population) < self._pop_size:
                 parent1 = self._population[self._select_parent()]
@@ -77,7 +78,8 @@ class GeneticAlgorithm:
                 child = self._crossover(parent1, parent2)
                 self._mutate(child)
                 new_population.append(child)
-            self._population = new_population
+            self._population     = new_population
+            self._fitness_scores = new_fitness
 
             if self._achieved_threshold(threshold=threshold):
                 if self._verbose:

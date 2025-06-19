@@ -86,7 +86,7 @@ class FitnessEvaluator:
     def _compute_score(self, insights:int) -> float:
         match insights:
             case 1:  return 100  # X_WIN (learner)
-            case 0:  return 70   # DRAW
+            case 0:  return 60   # DRAW
             case -1: return -50  # O_WIN (trainer)
             case -2: return -100 # learner failed!
         raise FitException(f"Unexpected Output={insights}")

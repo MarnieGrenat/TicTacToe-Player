@@ -1,5 +1,5 @@
-from tictactoe.board import Board as tictactoe
-from model import IModel
+from ..tictactoe.board import Board as tictactoe
+from ..model import IModel
 
 
 # RODA EM PARALELO! NÃO ADICIONAR PRINTS NESSA CLASSE!

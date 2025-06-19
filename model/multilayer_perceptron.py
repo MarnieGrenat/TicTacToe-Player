@@ -1,5 +1,5 @@
-from model.model_interface import IModel
-from model._neuron import Neuron
+from .model_interface import IModel
+from ._neuron import Neuron
 
 class MultilayerPerceptron(IModel):
     """

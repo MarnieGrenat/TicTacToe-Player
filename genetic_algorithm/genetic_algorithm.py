@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 # Optimization
-from multiprocessing import Pool
+from concurrent.futures import ThreadPoolExecutor
 
 class GeneticAlgorithm:
     """
@@ -59,7 +59,7 @@ class GeneticAlgorithm:
         self._population = [np.random.uniform(-1, 1, self._chromosome_size).tolist() for _ in range(self._pop_size)]
         self._fitness_scores = [0.0 for _ in range(self._pop_size)]
 
-    def run(self, threshold:float=5000) -> None:
+    def run(self, threshold:float=5000) -> list[float]:
         """
         Executa o ciclo do algoritmo genético até atingir o número máximo de gerações ou o limiar de aptidão.
         """
@@ -68,9 +68,9 @@ class GeneticAlgorithm:
 
             self._evaluate_population()
 
-            chromosome, fitness = self._elitism()
-            new_population = [chromosome]
-            new_fitness    = [fitness]
+            best_chromosome, best_fitness = self._elitism()
+            new_population = [best_chromosome]
+            new_fitness    = [best_fitness]
 
             while len(new_population) < self._pop_size:
                 parent1 = self._population[self._select_parent()]
@@ -83,24 +83,25 @@ class GeneticAlgorithm:
 
             if self._achieved_threshold(threshold=threshold):
                 if self._verbose:
-                    print(f"\nAtingiu a aptidão desejada na geração {gen}")
+                    print(f"GeneticAlgorithm : Atingiu a aptidão desejada : Geração={gen} : Fitness={best_fitness:.2f}")
                 break
 
-        print(f"\nTreinamento concluído! Melhor aptidão final: {fitness:.2f}")
+        print(f"GeneticAlgorithm : Treinamento concluído! Fitness={best_fitness:.2f}")
+        return best_chromosome
 
     def _evaluate_population(self, optimized:bool=True) -> None:
         """
         Avalia a aptidão de cada cromossomo da população usando a fitness_function.
         """
         if optimized:
-            with Pool() as pool:
-                self._fitness_scores = pool.map(self._fitness_function, self._population)
+            with ThreadPoolExecutor() as executor:
+                self._fitness_scores = list(executor.map(self._fitness_function, self._population))
         else:
             for i, chromosome in enumerate(self._population):
                 self._fitness_scores[i] = self._fitness_function(chromosome)
 
         if self._verbose:
-            print(f"Aptidões: {self._fitness_scores}")
+            print(f"GeneticAlgorithm : Fitnesses={self._fitness_scores}")
 
     def _elitism(self) -> tuple[list[float], float]:
         """
@@ -112,8 +113,8 @@ class GeneticAlgorithm:
 
 
         if self._verbose:
-            print(f"Melhor cromossomo: {best_chromosome}")
-            print(f"Melhor aptidão: {best_fitness:.2f}")
+            print(f"GeneticAlgorithm : Best Chromosome={best_chromosome}")
+            print(f"GeneticAlgorithm : Best Fitness={best_fitness:.2f}")
         return best_chromosome, best_fitness
 
     def _select_parent(self) -> int:

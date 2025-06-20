@@ -19,7 +19,9 @@ def train(learner: MultilayerPerceptron, trainer: Minimax, population_size:int, 
         verbose          =verbose
     )
 
-    training.run(threshold=threshold)
+    best_chromosomes = training.run(threshold=threshold)
+    learner.update(best_chromosomes)
+    return learner
 
 if __name__ == '__main__':
     PIPELINE = (

@@ -39,7 +39,7 @@ class FitnessEvaluator:
             self._trainer.update(mode)
             insights, board = self._play(self._learner, self._trainer)
 
-            learner_fitness += self._compute_score(insights)
+            learner_fitness += self._compute_score(mode, insights)
         print(f'FitnessEvaluator : Round de jogadas finalizado. Fitness={learner_fitness} : Board={board}')
 
         return learner_fitness
@@ -72,12 +72,21 @@ class FitnessEvaluator:
 
         return ttt.check_win(), ttt.board
 
-    def _compute_score(self, insights: int) -> float:
+    def _compute_score(self, mode: str, insights: int) -> float:
+        if mode == 'easy':
+            good = 1
+            bad = 3
+        elif mode == 'medium':
+            good = 2
+            bad = 2
+        else:
+            good = 3
+            bad = 1
         match insights:
-            case 1 : return +100     # X venceu
-            case 0 : return +60     # Empate
-            case -1: return -500   # O venceu
-            case -2: return -10000  # Jogada inválida
+            case 1 : return good * +200     # X venceu
+            case 0 : return good * +60     # Empate
+            case -1: return bad * -500   # O venceu
+            case -2: return -50000  # Jogada inválida
         raise FitException(f"FitnessEvaluator : Unexpected Output={insights}")
 
     @staticmethod
@@ -95,6 +104,9 @@ class FitnessEvaluator:
                     break
 
                 if not board.is_ongoing():
+                    if board.check_win() == 1:
+                        results["win"] += 1
+                        print(f'Win : {board.board}')
                     break
 
                 p2_move = trainer.predict(board.board)

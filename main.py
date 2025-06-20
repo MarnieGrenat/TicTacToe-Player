@@ -4,7 +4,7 @@ from genetic_algorithm import GeneticAlgorithm, FitnessEvaluator
 from model import MultilayerPerceptron, Minimax
 
 def train(learner: MultilayerPerceptron, trainer: Minimax, population_size: int, pipeline: list[str],
-          max_iter: int = 100, threshold: float = 500, learning_rate: float = 0.1,
+          max_iter: int = 100, threshold: float = 500, learning_rate: float = 0.1, mutation_rate: float = 0.1,
           verbose: bool = False) -> MultilayerPerceptron:
 
     print(f"Main : Pipeline de dificuldades: Easy={pipeline.count('easy')} | Medium={pipeline.count('medium')} | Hard={pipeline.count('hard')}")
@@ -15,7 +15,7 @@ def train(learner: MultilayerPerceptron, trainer: Minimax, population_size: int,
         fitness_function=FitnessEvaluator(learner, trainer, pipeline, verbose),
         max_iter=max_iter,
         learning_rate=learning_rate,
-        mutation_rate=0.1,
+        mutation_rate=mutation_rate,
         verbose=verbose
     )
 
@@ -29,7 +29,6 @@ if __name__ == '__main__':
 
     # Define parâmetros do treinamento
     PIPELINE = (
-        3 * ['easy'] +
         5 * ['medium'] +
         8 * ['hard']
     )
@@ -49,6 +48,7 @@ if __name__ == '__main__':
         pipeline=PIPELINE,
         max_iter=100,
         learning_rate=0.1,
+        mutation_rate=0.3,
         threshold=17 * 200, # PipelineLength * MaxEvaluation
         verbose=VERBOSE,
     )

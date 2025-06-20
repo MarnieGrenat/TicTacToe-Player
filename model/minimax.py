@@ -105,5 +105,5 @@ class Minimax(IModel):
         if 0 not in board:
             return 0  # Empate
 
-        return 2  # Jogo em andamento
+        return None  # Jogo em andamento
 

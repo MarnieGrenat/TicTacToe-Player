@@ -1,6 +1,6 @@
 from .model_interface import IModel
 from ._neuron import Neuron
-
+import numpy as np
 class MultilayerPerceptron(IModel):
     """
     Rede Neural Perceptron Multicamadas (MLP) para problemas de aprendizado supervisionado.
@@ -53,25 +53,27 @@ class MultilayerPerceptron(IModel):
 
         Cada neurônio em cada camada (exceto a de entrada) é instanciado com a quantidade de entradas definida pela topologia.
         """
-        self._neurons = []
-        # Pula a primeira layer (de inputs)
-        for i in range(1, len(topology)):
-            layer = [Neuron(n_params=topology[i - 1]) for _ in range(topology[i])]
-            self._neurons.append(layer)
+
         self._pop_size = population_size
         self._topology = topology
+        self.set_verbose(False)
+
+        self._neurons = []
+
+        for i in range(1, len(topology)):
+            n_inputs = topology[i - 1] # Número de neurônios da camada anterior
+            n_outputs = topology[i]     # Número de neurônios da camada atual
+            layer = [Neuron(n_params=n_inputs) for _ in range(n_outputs)]
+            self._neurons.append(layer)
+
+    def set_verbose(self, verbose:bool) -> None:
+        self._verbose = verbose
 
     def count_weights(self) -> int:
         """
         Retorna o número total de pesos (incluindo bias) necessários para a rede.
         """
         return sum((neuron.n + 1) for layer in self._neurons for neuron in layer)
-
-    def get_layers(self) -> list:
-        """
-        Retorna as camadas ocultas e de saída da MLP (ignora a camada de entrada).
-        """
-        return self._neurons[1:]
 
     def predict(self, board: list[int]) -> int:
         """
@@ -84,7 +86,16 @@ class MultilayerPerceptron(IModel):
         input = board
         for layer in self._neurons:
             input = [neuron.decide(input) for neuron in layer]
-        return input.index(max(input))  # Retorna o índice do maior valor como decisão final.
+        output = self._softmax(input)
+        if self._verbose:
+            print(f'\nMultilayerPerceptron : {output}')
+        return int(np.argmax(output))  # Retorna o índice do maior valor como decisão final.
+
+    def _softmax(self, x):
+        # sso faz com que a rede normalize os outputs da camada final em probabilidades bem distribuídas,
+        # forçando a rede a escolher uma célula de forma mais assertiva.
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum()
 
     def update(self, weights_vector: list) -> None:
         """

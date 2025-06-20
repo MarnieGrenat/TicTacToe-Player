@@ -83,10 +83,47 @@ class FitnessEvaluator:
 
         return ttt.check_win()
 
-    def _compute_score(self, insights:int) -> float:
+    def _compute_score(self, insights: int) -> float:
         match insights:
-            case 1:  return 100  # X_WIN (learner)
-            case 0:  return 60   # DRAW
-            case -1: return -50  # O_WIN (trainer)
-            case -2: return -100 # learner failed!
-        raise FitException(f"Unexpected Output={insights}")
+            case -1: return 150   # X venceu
+            case 0:  return 30    # Empate
+            case 1:  return -50   # O venceu
+            case -2: return -100  # Jogada inválida
+        raise FitException(f"FitnessEvaluator : Unexpected Output={insights}")
+
+    @staticmethod
+    def test_model(learner: IModel, trainer: IModel, rounds: int = 50):
+        results = {"win": 0, "draw": 0, "loss": 0}
+        print()
+
+        for _ in range(rounds):
+            board = tictactoe()
+
+            while board.is_ongoing():
+                p1_move = learner.predict(board.board)
+                if not board.update_board(1, p1_move):
+                    # Jogada inválida — considera derrota para MLP
+                    results["loss"] += 1
+                    break
+
+                if not board.is_ongoing():
+                    break
+
+                p2_move = trainer.predict(board.board)
+                if not board.update_board(-1, p2_move):
+                    # Jogada inválida do minimax — considera vitória para MLP
+                    results["win"] += 1
+                    break
+
+            else:
+                # Se o loop não foi quebrado por jogadas inválidas:
+                result = board.check_win()
+                if result == -1:
+                    results["win"] += 1
+                elif result == 0:
+                    results["draw"] += 1
+                elif result == 1:
+                    results["loss"] += 1
+
+        print(f"FitnessEvaluator : Results over {rounds} games: {results}")
+

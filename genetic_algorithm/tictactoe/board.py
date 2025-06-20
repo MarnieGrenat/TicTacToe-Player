@@ -70,16 +70,16 @@ class Board:
 
         for i in [0, 3, 6]:
             if b[i] == b[i + 1] == b[i + 2] != 0:
-                return self._get_label(b[i])
+                return b[i]
         for i in [0, 1, 2]:
             if b[i] == b[i + 3] == b[i + 6] != 0:
-                return self._get_label(b[i])
+                return b[i]
 
         # Verifica diagonais
         if b[0] == b[4] == b[8] != 0:
-            return self._get_label(b[4])
+            return b[4]
         if b[2] == b[4] == b[6] != 0:
-            return self._get_label(b[4])
+            return b[4]
 
         if 0 in b:
             return 2 # Em progesso
@@ -87,12 +87,6 @@ class Board:
 
     def is_ongoing(self) -> bool:
         return self.check_win() == 2
-
-    def _get_label(self, symbol: int) -> int:
-        """
-        Converte o símbolo (-1 para O, 1 para X) em código de vitória.
-        """
-        return 0 if symbol == -1 else 3
 
     def __valid_coordinates(self, index: int) -> bool:
         """

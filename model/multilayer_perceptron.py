@@ -1,6 +1,7 @@
-from mlp.neuron import Neuron
-
-class MultilayerPerceptron:
+from .model_interface import IModel
+from ._neuron import Neuron
+import numpy as np
+class MultilayerPerceptron(IModel):
     """
     Rede Neural Perceptron Multicamadas (MLP) para problemas de aprendizado supervisionado.
 
@@ -52,9 +53,21 @@ class MultilayerPerceptron:
 
         Cada neurônio em cada camada (exceto a de entrada) é instanciado com a quantidade de entradas definida pela topologia.
         """
-        self._neurons = [[Neuron(topology[n]) for _ in range(topology[n])] for n in range(1, len(topology))]
+
         self._pop_size = population_size
         self._topology = topology
+        self.set_verbose(False)
+
+        self._neurons = []
+
+        for i in range(1, len(topology)):
+            n_inputs = topology[i - 1] # Número de neurônios da camada anterior
+            n_outputs = topology[i]     # Número de neurônios da camada atual
+            layer = [Neuron(n_params=n_inputs) for _ in range(n_outputs)]
+            self._neurons.append(layer)
+
+    def set_verbose(self, verbose:bool) -> None:
+        self._verbose = verbose
 
     def count_weights(self) -> int:
         """
@@ -62,22 +75,7 @@ class MultilayerPerceptron:
         """
         return sum((neuron.n + 1) for layer in self._neurons for neuron in layer)
 
-    def get_neurons_quantity(self, layers) -> int:
-        """
-        Retorna o número total de neurônios em uma lista de camadas.
-        """
-        n = 0
-        for layer in layers:
-            n += len(layer)
-        return n
-
-    def get_layers(self) -> list:
-        """
-        Retorna as camadas ocultas e de saída da MLP (ignora a camada de entrada).
-        """
-        return self._neurons[1:]
-
-    def predict(self, board: list) -> int:
+    def predict(self, board: list[int]) -> int:
         """
         Realiza a propagação para frente na MLP usando a entrada fornecida.
 
@@ -86,9 +84,31 @@ class MultilayerPerceptron:
         int : índice da saída com maior ativação (posição de maior valor no vetor final da rede).
         """
         input = board
-        for layer in self.get_layers():
+        for layer in self._neurons:
             input = [neuron.decide(input) for neuron in layer]
-        return input.index(max(input))  # Retorna o índice do maior valor como decisão final.
+        output = self._softmax(input)
+        if self._verbose:
+            print(f'\nMultilayerPerceptron : {output}')
+        return int(np.argmax(output))  # Retorna o índice do maior valor como decisão final.
+
+    def _softmax(self, x):
+        # sso faz com que a rede normalize os outputs da camada final em probabilidades bem distribuídas,
+        # forçando a rede a escolher uma célula de forma mais assertiva.
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum()
+
+    def update(self, weights_vector: list) -> None:
+        """
+        Aplica um vetor linear de pesos em toda a rede.
+
+        O vetor de pesos deve conter todos os pesos e bias da rede concatenados em uma única lista.
+        """
+        idx = 0
+        for layer in self._neurons:
+            for neuron in layer:
+                n_params = neuron.n + 1
+                neuron.adjust_weights(weights_vector[idx:idx + n_params])
+                idx += n_params
 
     def to_json(self) -> dict:
         """
@@ -107,22 +127,6 @@ class MultilayerPerceptron:
             "neurons": all_neurons
         }
 
-    def load_weights_from_vector(self, board : list, weights_vector: list):
-        """
-
-        Aplica um vetor linear de pesos em toda a rede.
-
-        O vetor de pesos deve conter todos os pesos e bias da rede concatenados em uma única lista.
-        """
-        # print(f'board={board}')
-        self._neurons[0] = [Neuron(position) for position in board]
-        idx = 0
-        for layer in self._neurons[1:]:
-            for neuron in layer:
-                n_params = neuron.n + 1
-                neuron.adjust_weights(weights_vector[idx:idx + n_params])
-                idx += n_params
-
     @staticmethod
     def from_json(json: dict) -> 'MultilayerPerceptron':
         """
@@ -133,11 +137,11 @@ class MultilayerPerceptron:
         json : dict
             Dicionário no formato exportado pelo método to_json().
         """
-        mlp = MultilayerPerceptron(json['topology'], json['population_size'])
-        mlp.neurons = []
-        for layer_json in json['neurons']:
+        mlp = MultilayerPerceptron(list(json['topology']), int(json['population_size']))
+        mlp._neurons = []
+        for layer_json in list[dict](json['neurons']):
             layer = []
             for neuron_json in layer_json:
                 layer.append(Neuron.from_json(neuron_json))
-            mlp.neurons.append(layer)
+            mlp._neurons.append(layer)
         return mlp

@@ -40,8 +40,7 @@ class FitnessEvaluator:
             insights, board = self._play(self._learner, self._trainer)
 
             learner_fitness += self._compute_score(insights)
-        if learner_fitness > 0:
-            print(f'FitnessEvaluator : Round de jogadas finalizado. Fitness={learner_fitness} : Board={board}')
+        print(f'FitnessEvaluator : Round de jogadas finalizado. Fitness={learner_fitness} : Board={board}')
 
         return learner_fitness
 
@@ -75,9 +74,9 @@ class FitnessEvaluator:
 
     def _compute_score(self, insights: int) -> float:
         match insights:
-            case -1: return 150     # X venceu
-            case 0:  return 30      # Empate
-            case 1:  return -50     # O venceu
+            case 1 : return +100     # X venceu
+            case 0 : return +60     # Empate
+            case -1: return -500   # O venceu
             case -2: return -10000  # Jogada inválida
         raise FitException(f"FitnessEvaluator : Unexpected Output={insights}")
 

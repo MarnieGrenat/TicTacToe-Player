@@ -98,9 +98,9 @@ class Minimax(IModel):
         for combo in wins:
             values = [board[i] for i in combo]
             if values == [1, 1, 1]:
-                return 1   # O venceu
+                return 1
             elif values == [-1, -1, -1]:
-                return -1  # X venceu
+                return -1
 
         if 0 not in board:
             return 0  # Empate

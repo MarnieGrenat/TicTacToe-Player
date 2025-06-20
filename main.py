@@ -15,6 +15,7 @@ def train(learner: MultilayerPerceptron, trainer: Minimax, population_size: int,
         fitness_function=FitnessEvaluator(learner, trainer, pipeline, verbose),
         max_iter=max_iter,
         learning_rate=learning_rate,
+        mutation_rate=0.1,
         verbose=verbose
     )
 
@@ -28,11 +29,12 @@ if __name__ == '__main__':
 
     # Define parâmetros do treinamento
     PIPELINE = (
-        7 * ['medium'] +
-        10 * ['hard']
+        3 * ['easy'] +
+        5 * ['medium'] +
+        8 * ['hard']
     )
 
-    TOPOLOGY = [9, 18, 9]
+    TOPOLOGY = [9, 32, 18, 9]
 
     VERBOSE = False
 
@@ -43,18 +45,18 @@ if __name__ == '__main__':
     model = train(
         learner=model,
         trainer=minimax,
-        population_size=7000,
+        population_size=1000,
         pipeline=PIPELINE,
-        max_iter=250,
-        learning_rate=0.4,
-        threshold=17 * 150, # PipelineLength * MaxEvaluation
+        max_iter=100,
+        learning_rate=0.1,
+        threshold=17 * 200, # PipelineLength * MaxEvaluation
         verbose=VERBOSE,
     )
 
     # Salva o modelo
-    with open('output/model_2.json', 'w') as f:
+    with open('output/model_3.json', 'w') as f:
         json.dump(model.to_json(), f)
 
     # Testa o modelo após o treinamento
-    print("Main : Avaliação contra o Minimax:")
-    FitnessEvaluator.test_model(model, minimax, rounds=50)
+#    print("Main : Avaliação contra o Minimax:")
+#    FitnessEvaluator.test_model(model, minimax, rounds=50)

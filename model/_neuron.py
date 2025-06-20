@@ -72,7 +72,8 @@ class Neuron:
         """
         Função de ativação do neurônio (sigmoide).
         """
-        return 1 / (1 + np.exp(-x))
+        return np.tanh(x)
+        # return 1 / (1 + np.exp(-x))
 
     def adjust_weights(self, fitted_weights: list) -> None:
         """

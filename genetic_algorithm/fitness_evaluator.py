@@ -37,14 +37,15 @@ class FitnessEvaluator:
 
         for mode in self._pipeline:
             self._trainer.update(mode)
-            insights = self._play(self._learner, self._trainer)
+            insights, board = self._play(self._learner, self._trainer)
 
             learner_fitness += self._compute_score(insights)
+        if learner_fitness > 0:
+            print(f'FitnessEvaluator : Round de jogadas finalizado. Fitness={learner_fitness} : Board={board}')
 
-        print(f'FitnessEvaluator : Round de jogadas finalizado. Fitness={learner_fitness}')
         return learner_fitness
 
-    def _play(self, player1:IModel, player2:IModel) -> int | None:
+    def _play(self, player1:IModel, player2:IModel) -> tuple[int, list[int]] | None:
         """
         Executa uma partida entre dois agentes com método predict().
 
@@ -60,7 +61,7 @@ class FitnessEvaluator:
             if not ttt.update_board(1, p1_play):
                 if self._verbose:
                     print(f'FitnessEvaluator : Player 1 : Failed : Prediction={p1_play} : Board={ttt.board}')
-                return -2
+                return -2, ttt.board
             if not ttt.is_ongoing():
                 break
 
@@ -70,20 +71,19 @@ class FitnessEvaluator:
             if not ttt.is_ongoing():
                 break
 
-        return ttt.check_win()
+        return ttt.check_win(), ttt.board
 
     def _compute_score(self, insights: int) -> float:
         match insights:
-            case -1: return 150   # X venceu
-            case 0:  return 30    # Empate
-            case 1:  return -50   # O venceu
-            case -2: return -100  # Jogada inválida
+            case -1: return 150     # X venceu
+            case 0:  return 30      # Empate
+            case 1:  return -50     # O venceu
+            case -2: return -10000  # Jogada inválida
         raise FitException(f"FitnessEvaluator : Unexpected Output={insights}")
 
     @staticmethod
     def test_model(learner: IModel, trainer: IModel, rounds: int = 50):
-        results = {"win": 0, "draw": 0, "loss": 0}
-        print()
+        results = {"win": 0, "draw": 0, "loss": 0, "mlp_fail": 0, "minimax_fail": 0}
 
         for _ in range(rounds):
             board = tictactoe()
@@ -91,8 +91,8 @@ class FitnessEvaluator:
             while board.is_ongoing():
                 p1_move = learner.predict(board.board)
                 if not board.update_board(1, p1_move):
-                    # Jogada inválida — considera derrota para MLP
-                    results["loss"] += 1
+                    results["mlp_fail"] += 1
+                    print(f'MLP FAIL : {board.board}')
                     break
 
                 if not board.is_ongoing():
@@ -100,19 +100,22 @@ class FitnessEvaluator:
 
                 p2_move = trainer.predict(board.board)
                 if not board.update_board(-1, p2_move):
-                    # Jogada inválida do minimax — considera vitória para MLP
-                    results["win"] += 1
+                    results["minimax_fail"] += 1
+                    print(f'Minimax FAIL : {board.board}')
                     break
 
-            else:
-                # Se o loop não foi quebrado por jogadas inválidas:
+            else:  # ✅ Executa se não houve break (jogo terminou normalmente)
                 result = board.check_win()
-                if result == -1:
+                if result == 1:
                     results["win"] += 1
+                    print(f'Win : {board.board}')
                 elif result == 0:
                     results["draw"] += 1
-                elif result == 1:
+                    print(f'Draw : {board.board}')
+                elif result == -1:
                     results["loss"] += 1
+                    print(f'Loss : {board.board}')
 
         print(f"FitnessEvaluator : Results over {rounds} games: {results}")
+
 

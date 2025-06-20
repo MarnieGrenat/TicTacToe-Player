@@ -43,19 +43,18 @@ if __name__ == '__main__':
     model = train(
         learner=model,
         trainer=minimax,
-        population_size=4000,
+        population_size=7000,
         pipeline=PIPELINE,
         max_iter=250,
         learning_rate=0.4,
-        threshold=1000,
+        threshold=17 * 150, # PipelineLength * MaxEvaluation
         verbose=VERBOSE,
     )
 
     # Salva o modelo
-    with open('output/model.json', 'w') as f:
+    with open('output/model_2.json', 'w') as f:
         json.dump(model.to_json(), f)
 
     # Testa o modelo após o treinamento
     print("Main : Avaliação contra o Minimax:")
-    model.set_verbose(True)
     FitnessEvaluator.test_model(model, minimax, rounds=50)

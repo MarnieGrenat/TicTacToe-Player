@@ -1,5 +1,5 @@
-from ..tictactoe.board import Board as tictactoe
-from ..model import IModel
+from .tictactoe.board import Board as tictactoe
+from model import IModel
 
 
 # RODA EM PARALELO! NÃO ADICIONAR PRINTS NESSA CLASSE!
@@ -54,30 +54,19 @@ class FitnessEvaluator:
         """
         ttt = tictactoe()
         if self._verbose:
-            print('Starting new round')
+            print('FitnessEvaluator : Starting new round')
         while True:
             p1_play = player1.predict(ttt.board)
-
             if not ttt.update_board(1, p1_play):
                 if self._verbose:
-                    print(f'Player 1 : Failed : Prediction={p1_play} : Board={ttt.board}')
+                    print(f'FitnessEvaluator : Player 1 : Failed : Prediction={p1_play} : Board={ttt.board}')
                 return -2
-            else:
-                if self._verbose:
-                    print(f'Player 1 : Success : Prediction={p1_play} : Board={ttt.board}')
-
             if not ttt.is_ongoing():
                 break
 
             p2_play = player2.predict(ttt.board)
             if not ttt.update_board(-1, p2_play):
-                if self._verbose:
-                    print(f'Player 2 : Fail : Prediction={p1_play} : Board={ttt.board}')
-                raise FitException(f"Player 2 has failed to play. Prediction={p2_play} : Board={ttt.board}")
-            else:
-                if self._verbose:
-                    print(f'Player 2 : Success : Prediction={p1_play} : Board={ttt.board}')
-
+                raise FitException(f"FitnessEvaluator : Player 2 has failed to play. Prediction={p2_play} : Board={ttt.board}")
             if not ttt.is_ongoing():
                 break
 

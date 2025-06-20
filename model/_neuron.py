@@ -114,7 +114,7 @@ class Neuron:
         --------
         Neuron : Instância reconstruída.
         """
-        n = json['n_params']
+        n = int(json['n_params'])
         neuron = Neuron(n, randomize=False)
-        neuron.weights = np.array(json['weights'])
+        neuron.weights = np.array(list(json['weights']))
         return neuron

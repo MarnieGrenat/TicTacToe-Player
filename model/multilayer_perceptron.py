@@ -126,11 +126,11 @@ class MultilayerPerceptron(IModel):
         json : dict
             Dicionário no formato exportado pelo método to_json().
         """
-        mlp = MultilayerPerceptron(json['topology'], json['population_size'])
-        mlp.neurons = []
-        for layer_json in json['neurons']:
+        mlp = MultilayerPerceptron(list(json['topology']), int(json['population_size']))
+        mlp._neurons = []
+        for layer_json in list[dict](json['neurons']):
             layer = []
             for neuron_json in layer_json:
                 layer.append(Neuron.from_json(neuron_json))
-            mlp.neurons.append(layer)
+            mlp._neurons.append(layer)
         return mlp

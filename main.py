@@ -47,9 +47,9 @@ if __name__ == '__main__':
         population_size=1000,
         pipeline=PIPELINE,
         max_iter=70,
-        learning_rate=0.1,
+        learning_rate=0.15,
         mutation_rate=0.5,
-        threshold= 12 * 200, # PipelineLength * MaxEvaluation
+        threshold= 10 * 200, # PipelineLength * MaxEvaluation
         verbose=VERBOSE,
     )
 

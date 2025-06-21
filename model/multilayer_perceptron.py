@@ -46,15 +46,13 @@ class MultilayerPerceptron(IModel):
     -   Corrigir a matriz de neurônios para não necessitar ser quadrada
     -
     '''
-    def __init__(self, topology: list, population_size: int = 100):
+    def __init__(self, topology: list):
         """
         # Setta neurônio da primeira layer pra frente, pois a primeira layer deve ser o tabuleiro
         Inicializa a MLP com a topologia especificada.
 
         Cada neurônio em cada camada (exceto a de entrada) é instanciado com a quantidade de entradas definida pela topologia.
         """
-
-        self._pop_size = population_size
         self._topology = topology
         self.set_verbose(False)
 
@@ -123,7 +121,6 @@ class MultilayerPerceptron(IModel):
 
         return {
             "topology": self._topology,
-            "population_size": self._pop_size,
             "neurons": all_neurons
         }
 
@@ -137,7 +134,7 @@ class MultilayerPerceptron(IModel):
         json : dict
             Dicionário no formato exportado pelo método to_json().
         """
-        mlp = MultilayerPerceptron(list(json['topology']), int(json['population_size']))
+        mlp = MultilayerPerceptron(list(json['topology']))
         mlp._neurons = []
         for layer_json in list[dict](json['neurons']):
             layer = []

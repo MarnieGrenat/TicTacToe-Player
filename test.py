@@ -12,7 +12,7 @@ def load_model(json_path: str) -> MultilayerPerceptron:
 
 model = load_model('output/model_3.json')
 minimax = Minimax()
-minimax.update('hard')
+minimax.update('easy')
 
 # Testa o modelo após o treinamento
 print("Main : Avaliação contra o Minimax:")

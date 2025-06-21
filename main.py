@@ -33,7 +33,7 @@ if __name__ == '__main__':
         8 * ['hard']
     )
 
-    TOPOLOGY = [9, 32, 18, 9]
+    TOPOLOGY = [9, 32, 9]
 
     VERBOSE = False
 
@@ -46,17 +46,17 @@ if __name__ == '__main__':
         trainer=minimax,
         population_size=1000,
         pipeline=PIPELINE,
-        max_iter=100,
+        max_iter=70,
         learning_rate=0.1,
-        mutation_rate=0.3,
-        threshold=17 * 200, # PipelineLength * MaxEvaluation
+        mutation_rate=0.5,
+        threshold= 12 * 200, # PipelineLength * MaxEvaluation
         verbose=VERBOSE,
     )
 
     # Salva o modelo
-    with open('output/model_3.json', 'w') as f:
+    with open('output/model_4.json', 'w') as f:
         json.dump(model.to_json(), f)
 
     # Testa o modelo após o treinamento
-#    print("Main : Avaliação contra o Minimax:")
-#    FitnessEvaluator.test_model(model, minimax, rounds=50)
+    print("Main : Avaliação contra o Minimax:")
+    FitnessEvaluator.test_model(model, minimax, rounds=50)
